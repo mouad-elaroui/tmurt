@@ -1,46 +1,319 @@
 
-import { Container, Heading, Table } from "@medusajs/ui"
+import { Container, Heading, Table, Text, Badge, Button, Input } from "@medusajs/ui"
 import { RouteConfig } from "@medusajs/admin-sdk"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 
-const SizingPage = () => {
-    // Hna kan-jeriw l-donnees dial sizing
-    const [sizingData, setSizingData] = useState([])
+interface SizingData {
+    id: string
+    customer_id: string
+    recommended_size: string
+    chest?: number
+    waist?: number
+    hips?: number
+    height?: number
+    created_at?: string
+    metadata?: any
+}
 
-    useEffect(() => {
-        fetch("/admin/sizing")
-            .then(res => res.json())
-            .then(data => setSizingData(data.sizing_data))
-            .catch(err => console.error(err))
-    }, [])
+// Statistics Card Component
+const StatCard = ({
+    title,
+    value,
+    color = "amber"
+}: {
+    title: string
+    value: string | number
+    color?: string
+}) => (
+    <div className={`bg-white rounded-lg border border-gray-200 p-4 shadow-sm`}>
+        <Text className="text-sm text-gray-500">{title}</Text>
+        <Heading level="h3" className="text-xl font-bold mt-1">
+            {value}
+        </Heading>
+    </div>
+)
+
+// Size Distribution Chart (simple bar chart)
+const SizeDistributionChart = ({ data }: { data: Record<string, number> }) => {
+    const maxCount = Math.max(...Object.values(data), 1)
+    const sizes = ["XS", "S", "M", "L", "XL", "XXL"]
 
     return (
-        <Container>
-            <Heading level="h1" className="mb-6">Sizing Data</Heading>
-            <Table>
-                <Table.Header>
-                    <Table.Row>
-                        <Table.HeaderCell>ID</Table.HeaderCell>
-                        <Table.HeaderCell>Customer ID</Table.HeaderCell>
-                        <Table.HeaderCell>Recommended Size</Table.HeaderCell>
-                    </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                    {sizingData.length > 0 ? (
-                        sizingData.map((d: any) => (
-                            <Table.Row key={d.id}>
-                                <Table.Cell>{d.id}</Table.Cell>
-                                <Table.Cell>{d.customer_id}</Table.Cell>
-                                <Table.Cell>{d.recommended_size}</Table.Cell>
-                            </Table.Row>
-                        ))
-                    ) : (
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <Heading level="h4" className="text-sm font-medium text-gray-700 mb-4">
+                📊 Size Distribution
+            </Heading>
+            <div className="flex items-end justify-between gap-2 h-40">
+                {sizes.map((size) => {
+                    const count = data[size] || 0
+                    const height = maxCount > 0 ? (count / maxCount) * 100 : 0
+
+                    return (
+                        <div key={size} className="flex-1 flex flex-col items-center">
+                            <div
+                                className="w-full bg-gradient-to-t from-amber-400 to-amber-300 rounded-t transition-all duration-500"
+                                style={{ height: `${height}%`, minHeight: count > 0 ? '8px' : '0' }}
+                            />
+                            <Text className="text-xs font-medium mt-2">{size}</Text>
+                            <Text className="text-xs text-gray-400">{count}</Text>
+                        </div>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
+
+// Detail Row Component
+const SizingDetailRow = ({ data, isExpanded, onToggle }: {
+    data: SizingData
+    isExpanded: boolean
+    onToggle: () => void
+}) => (
+    <>
+        <Table.Row
+            className="hover:bg-gray-50 cursor-pointer"
+            onClick={onToggle}
+        >
+            <Table.Cell className="font-mono text-sm">
+                {data.id.slice(0, 12)}...
+            </Table.Cell>
+            <Table.Cell className="font-mono text-sm">
+                {data.customer_id.slice(0, 12)}...
+            </Table.Cell>
+            <Table.Cell>
+                <Badge color={
+                    data.recommended_size === "M" ? "green" :
+                        data.recommended_size === "L" || data.recommended_size === "XL" ? "blue" :
+                            "grey"
+                }>
+                    {data.recommended_size}
+                </Badge>
+            </Table.Cell>
+            <Table.Cell>
+                {data.created_at
+                    ? new Date(data.created_at).toLocaleDateString()
+                    : "N/A"
+                }
+            </Table.Cell>
+            <Table.Cell>
+                <Button variant="secondary" size="small">
+                    {isExpanded ? "Hide" : "Details"}
+                </Button>
+            </Table.Cell>
+        </Table.Row>
+        {isExpanded && (
+            <Table.Row className="bg-amber-50">
+                <Table.Cell colSpan={5} className="p-4">
+                    <div className="grid grid-cols-4 gap-4">
+                        <div className="bg-white rounded-lg p-3 border border-amber-200">
+                            <Text className="text-xs text-gray-500">Chest</Text>
+                            <Text className="font-bold">{data.chest || "N/A"} cm</Text>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-amber-200">
+                            <Text className="text-xs text-gray-500">Waist</Text>
+                            <Text className="font-bold">{data.waist || "N/A"} cm</Text>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-amber-200">
+                            <Text className="text-xs text-gray-500">Hips</Text>
+                            <Text className="font-bold">{data.hips || "N/A"} cm</Text>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-amber-200">
+                            <Text className="text-xs text-gray-500">Height</Text>
+                            <Text className="font-bold">{data.height || "N/A"} cm</Text>
+                        </div>
+                    </div>
+                </Table.Cell>
+            </Table.Row>
+        )}
+    </>
+)
+
+const SizingPage = () => {
+    const [sizingData, setSizingData] = useState<SizingData[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState("")
+    const [expandedId, setExpandedId] = useState<string | null>(null)
+    const [sizeFilter, setSizeFilter] = useState<string>("")
+
+    useEffect(() => {
+        fetchSizingData()
+    }, [])
+
+    const fetchSizingData = async () => {
+        setIsLoading(true)
+        try {
+            const res = await fetch("/admin/sizing")
+            const data = await res.json()
+            setSizingData(data.sizing_data || [])
+        } catch (err) {
+            console.error("Error fetching sizing data:", err)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    // Calculate size distribution
+    const sizeDistribution = useMemo(() => {
+        const dist: Record<string, number> = {}
+        sizingData.forEach(d => {
+            const size = d.recommended_size || "Unknown"
+            dist[size] = (dist[size] || 0) + 1
+        })
+        return dist
+    }, [sizingData])
+
+    // Filtered data
+    const filteredData = useMemo(() => {
+        let result = [...sizingData]
+
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase()
+            result = result.filter(d =>
+                d.id.toLowerCase().includes(term) ||
+                d.customer_id.toLowerCase().includes(term)
+            )
+        }
+
+        if (sizeFilter) {
+            result = result.filter(d => d.recommended_size === sizeFilter)
+        }
+
+        return result
+    }, [sizingData, searchTerm, sizeFilter])
+
+    // Export to CSV
+    const exportToCSV = () => {
+        const headers = ["ID", "Customer ID", "Recommended Size", "Chest", "Waist", "Hips", "Height"]
+        const rows = filteredData.map(d => [
+            d.id,
+            d.customer_id,
+            d.recommended_size,
+            d.chest || "",
+            d.waist || "",
+            d.hips || "",
+            d.height || ""
+        ])
+
+        const csvContent = [headers, ...rows]
+            .map(row => row.join(","))
+            .join("\n")
+
+        const blob = new Blob([csvContent], { type: "text/csv" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `sizing-data-${new Date().toISOString().split('T')[0]}.csv`
+        link.click()
+    }
+
+    return (
+        <Container className="p-8">
+            {/* Page Header */}
+            <div className="mb-8">
+                <Heading level="h1" className="text-3xl font-bold mb-2">
+                    📏 Sizing Data
+                </Heading>
+                <Text className="text-gray-500">
+                    Customer measurements and size recommendations
+                </Text>
+            </div>
+
+            {/* Statistics and Chart */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <StatCard title="Total Records" value={sizingData.length} />
+                <StatCard
+                    title="Most Common Size"
+                    value={Object.entries(sizeDistribution).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A"}
+                />
+                <StatCard
+                    title="Unique Customers"
+                    value={new Set(sizingData.map(d => d.customer_id)).size}
+                />
+            </div>
+
+            <div className="mb-8">
+                <SizeDistributionChart data={sizeDistribution} />
+            </div>
+
+            {/* Search and Filters */}
+            <div className="mb-6 flex flex-wrap gap-4 items-center">
+                <div className="flex-1 max-w-md">
+                    <Input
+                        placeholder="Search by ID or Customer ID..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <select
+                    className="border border-gray-300 rounded-lg px-4 py-2"
+                    value={sizeFilter}
+                    onChange={(e) => setSizeFilter(e.target.value)}
+                >
+                    <option value="">All Sizes</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                </select>
+                <Button variant="secondary" onClick={fetchSizingData}>
+                    Refresh
+                </Button>
+                <Button variant="primary" onClick={exportToCSV}>
+                    Export CSV
+                </Button>
+            </div>
+
+            {/* Data Table */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <Table>
+                    <Table.Header>
                         <Table.Row>
-                            <Table.Cell colSpan={3} className="text-center">No sizing data found</Table.Cell>
+                            <Table.HeaderCell>ID</Table.HeaderCell>
+                            <Table.HeaderCell>Customer ID</Table.HeaderCell>
+                            <Table.HeaderCell>Recommended Size</Table.HeaderCell>
+                            <Table.HeaderCell>Date</Table.HeaderCell>
+                            <Table.HeaderCell>Actions</Table.HeaderCell>
                         </Table.Row>
-                    )}
-                </Table.Body>
-            </Table>
+                    </Table.Header>
+                    <Table.Body>
+                        {isLoading ? (
+                            <Table.Row>
+                                <Table.Cell colSpan={5} className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500"></div>
+                                    <Text className="ml-2">Loading sizing data...</Text>
+                                </Table.Cell>
+                            </Table.Row>
+                        ) : filteredData.length > 0 ? (
+                            filteredData.map((d) => (
+                                <SizingDetailRow
+                                    key={d.id}
+                                    data={d}
+                                    isExpanded={expandedId === d.id}
+                                    onToggle={() => setExpandedId(expandedId === d.id ? null : d.id)}
+                                />
+                            ))
+                        ) : (
+                            <Table.Row>
+                                <Table.Cell colSpan={5} className="text-center py-8">
+                                    <Text className="text-gray-500">
+                                        {searchTerm || sizeFilter ? "No data matches your filters" : "No sizing data found"}
+                                    </Text>
+                                </Table.Cell>
+                            </Table.Row>
+                        )}
+                    </Table.Body>
+                </Table>
+            </div>
+
+            {/* Results count */}
+            <div className="mt-4">
+                <Text className="text-sm text-gray-500">
+                    Showing {filteredData.length} of {sizingData.length} records
+                </Text>
+            </div>
         </Container>
     )
 }
