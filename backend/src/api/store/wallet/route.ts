@@ -9,7 +9,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
         const walletService: WalletService = req.scope.resolve(WALLET_MODULE)
 
         // Get customer ID from auth context
-        const customerId = (req as any).auth_context?.actor_id
+        const customerId = (req as { auth_context?: { actor_id?: string } }).auth_context?.actor_id
 
         if (!customerId) {
             res.status(401).json({
@@ -49,11 +49,12 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
             currency_code: wallet.currency_code || "MAD",
             formatted_balance: `${balance.toFixed(2)} ${wallet.currency_code || "MAD"}`
         })
-    } catch (error: any) {
-        console.error("Error fetching wallet:", error)
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error"
+        console.error("Error fetching wallet:", message)
         res.status(500).json({
             message: "Error fetching wallet",
-            error: error.message
+            error: message
         })
     }
 }

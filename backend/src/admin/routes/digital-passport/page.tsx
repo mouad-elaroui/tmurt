@@ -1,43 +1,66 @@
+"use client"
 
 import { Container, Heading, Table, Text, Badge, Button, Input } from "@medusajs/ui"
 import { RouteConfig } from "@medusajs/admin-sdk"
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, type ChangeEvent, type MouseEvent } from "react"
+
+// Types dyal passports
+type PassportStatus = "active" | "verified" | "revoked"
 
 interface DigitalPassport {
     id: string
     token_id: string
     order_id: string
     created_at?: string
-    status?: "active" | "verified" | "revoked"
-    metadata?: any
+    status?: PassportStatus
 }
 
-// QR Code Preview (simple visual representation)
-const QRPreview = ({ tokenId }: { tokenId: string }) => (
+interface PassportStats {
+    total: number
+    active: number
+    verified: number
+    revoked: number
+}
+
+interface QRPreviewProps {
+    tokenId: string
+}
+
+// QR Code Preview
+const QRPreview = ({ tokenId }: QRPreviewProps) => (
     <div className="w-24 h-24 bg-white border border-gray-200 rounded-lg p-2 flex items-center justify-center">
         <div className="grid grid-cols-5 gap-0.5">
-            {[...Array(25)].map((_, i) => (
+            {Array.from({ length: 25 }, (_, i) => (
                 <div
                     key={i}
-                    className={`w-3 h-3 ${Math.random() > 0.5 ? 'bg-gray-900' : 'bg-white'
-                        }`}
+                    className={`w-3 h-3 ${tokenId.charCodeAt(i % tokenId.length) % 2 === 0 ? "bg-gray-900" : "bg-white"}`}
                 />
             ))}
         </div>
     </div>
 )
 
-// Passport Detail Modal
-const PassportDetailModal = ({
-    passport,
-    onClose,
-    onRevoke
-}: {
+interface PassportDetailModalProps {
     passport: DigitalPassport | null
     onClose: () => void
     onRevoke: (id: string) => void
-}) => {
+}
+
+// Helper bash n-jobo color dyal status
+const getStatusColor = (status?: PassportStatus): "green" | "red" | "blue" => {
+    if (status === "verified") return "green"
+    if (status === "revoked") return "red"
+    return "blue"
+}
+
+// Modal dyal tafasil l-passport
+const PassportDetailModal = ({ passport, onClose, onRevoke }: PassportDetailModalProps) => {
+    // Early return pattern
     if (!passport) return null
+
+    const handleViewOrder = () => {
+        window.open(`/orders/${passport.order_id}`, "_blank")
+    }
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -57,6 +80,7 @@ const PassportDetailModal = ({
                         <button
                             onClick={onClose}
                             className="text-white/80 hover:text-white"
+                            type="button"
                         >
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -84,11 +108,8 @@ const PassportDetailModal = ({
                         <div className="flex gap-4">
                             <div className="flex-1 bg-gray-50 rounded-lg p-4">
                                 <Text className="text-sm text-gray-500">Status</Text>
-                                <Badge color={
-                                    passport.status === "verified" ? "green" :
-                                        passport.status === "revoked" ? "red" : "blue"
-                                }>
-                                    {passport.status || "Active"}
+                                <Badge color={getStatusColor(passport.status)}>
+                                    {passport.status ?? "Active"}
                                 </Badge>
                             </div>
                             <div className="flex-1 bg-gray-50 rounded-lg p-4">
@@ -108,9 +129,7 @@ const PassportDetailModal = ({
                         <Button
                             variant="secondary"
                             className="flex-1"
-                            onClick={() => {
-                                window.open(`/orders/${passport.order_id}`, '_blank')
-                            }}
+                            onClick={handleViewOrder}
                         >
                             View Order
                         </Button>
@@ -134,60 +153,66 @@ const PassportPage = () => {
     const [passports, setPassports] = useState<DigitalPassport[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
-    const [statusFilter, setStatusFilter] = useState<string>("")
+    const [statusFilter, setStatusFilter] = useState("")
     const [selectedPassport, setSelectedPassport] = useState<DigitalPassport | null>(null)
 
-    useEffect(() => {
-        fetchPassports()
-    }, [])
-
+    // Fetch passports
     const fetchPassports = async () => {
         setIsLoading(true)
         try {
             const res = await fetch("/admin/digital-passports")
             const data = await res.json()
-            setPassports(data.digital_passports || [])
+            setPassports(data.digital_passports ?? [])
         } catch (err) {
-            console.error("Error fetching passports:", err)
+            console.error("Khata f fetch passports:", err)
         } finally {
             setIsLoading(false)
         }
     }
 
-    // Statistics
-    const stats = useMemo(() => {
-        const active = passports.filter(p => p.status === "active" || !p.status).length
-        const verified = passports.filter(p => p.status === "verified").length
-        const revoked = passports.filter(p => p.status === "revoked").length
-        return { total: passports.length, active, verified, revoked }
-    }, [passports])
+    useEffect(() => {
+        fetchPassports()
+    }, [])
 
-    // Filtered passports
+    // Statistics - calculated b reduce
+    const stats = useMemo<PassportStats>(() => ({
+        total: passports.length,
+        active: passports.filter(p => !p.status || p.status === "active").length,
+        verified: passports.filter(p => p.status === "verified").length,
+        revoked: passports.filter(p => p.status === "revoked").length
+    }), [passports])
+
+    // Filter passports
     const filteredPassports = useMemo(() => {
-        let result = [...passports]
+        const term = searchTerm.toLowerCase()
 
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase()
-            result = result.filter(p =>
+        return passports
+            .filter(p =>
+                !searchTerm ||
                 p.id.toLowerCase().includes(term) ||
                 p.token_id.toLowerCase().includes(term) ||
                 p.order_id.toLowerCase().includes(term)
             )
-        }
-
-        if (statusFilter) {
-            result = result.filter(p => (p.status || "active") === statusFilter)
-        }
-
-        return result
+            .filter(p => !statusFilter || (p.status ?? "active") === statusFilter)
     }, [passports, searchTerm, statusFilter])
 
-    const handleRevoke = async (id: string) => {
-        // In production, this would call an API to revoke the passport
+    // Revoke handler
+    const handleRevoke = (id: string) => {
         setPassports(prev => prev.map(p =>
             p.id === id ? { ...p, status: "revoked" as const } : p
         ))
         setSelectedPassport(null)
+    }
+
+    // Row click handler
+    const handleRowClick = (passport: DigitalPassport) => {
+        setSelectedPassport(passport)
+    }
+
+    // View button click - prevent row click
+    const handleViewClick = (e: MouseEvent, passport: DigitalPassport) => {
+        e.stopPropagation()
+        setSelectedPassport(passport)
     }
 
     return (
@@ -195,7 +220,7 @@ const PassportPage = () => {
             {/* Page Header */}
             <div className="mb-8">
                 <Heading level="h1" className="text-3xl font-bold mb-2">
-                    🎫 Digital Passports
+                    Digital Passports
                 </Heading>
                 <Text className="text-gray-500">
                     Manage product authenticity certificates
@@ -243,7 +268,7 @@ const PassportPage = () => {
                     <Input
                         placeholder="Search by Token ID, Order ID..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                     />
                 </div>
                 <select
@@ -276,8 +301,8 @@ const PassportPage = () => {
                     <Table.Body>
                         {isLoading ? (
                             <Table.Row>
-                                <Table.Cell colSpan={5} className="text-center py-8">
-                                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500"></div>
+                                <Table.Cell {...{ colSpan: 5 } as React.TdHTMLAttributes<HTMLTableCellElement>} className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500" />
                                     <Text className="ml-2">Loading passports...</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -286,7 +311,7 @@ const PassportPage = () => {
                                 <Table.Row
                                     key={p.id}
                                     className="hover:bg-gray-50 cursor-pointer"
-                                    onClick={() => setSelectedPassport(p)}
+                                    onClick={() => handleRowClick(p)}
                                 >
                                     <Table.Cell>
                                         <div className="flex items-center gap-2">
@@ -302,11 +327,8 @@ const PassportPage = () => {
                                         {p.order_id.slice(0, 16)}...
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Badge color={
-                                            p.status === "verified" ? "green" :
-                                                p.status === "revoked" ? "red" : "blue"
-                                        }>
-                                            {p.status || "Active"}
+                                        <Badge color={getStatusColor(p.status)}>
+                                            {p.status ?? "Active"}
                                         </Badge>
                                     </Table.Cell>
                                     <Table.Cell>
@@ -319,10 +341,7 @@ const PassportPage = () => {
                                         <Button
                                             variant="secondary"
                                             size="small"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setSelectedPassport(p)
-                                            }}
+                                            onClick={(e) => handleViewClick(e, p)}
                                         >
                                             View
                                         </Button>
@@ -331,7 +350,7 @@ const PassportPage = () => {
                             ))
                         ) : (
                             <Table.Row>
-                                <Table.Cell colSpan={5} className="text-center py-8">
+                                <Table.Cell {...{ colSpan: 5 } as React.TdHTMLAttributes<HTMLTableCellElement>} className="text-center py-8">
                                     <Text className="text-gray-500">
                                         {searchTerm || statusFilter ? "No passports match your filters" : "No passports found"}
                                     </Text>
@@ -361,11 +380,5 @@ const PassportPage = () => {
     )
 }
 
-export const config: RouteConfig = {
-    link: {
-        label: "Digital Passports",
-        icon: "DocumentText",
-    },
-}
 
 export default PassportPage

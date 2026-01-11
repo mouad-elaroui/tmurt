@@ -1,20 +1,42 @@
-/**
- * Dashboard Welcome Widget - Moroccan Branded Header
- * Appears at the top of the main dashboard
- */
+// tmurt dashboard welcome widget
 
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
-import { Container, Heading, Text } from "@medusajs/ui"
 import { useEffect, useState } from "react"
+
+const GREETINGS: Record<string, string> = {
+    morning: "Good Morning",
+    afternoon: "Good Afternoon",
+    evening: "Good Evening",
+}
+
+const getGreeting = (): string => {
+    const hour = new Date().getHours()
+    return hour < 12 ? GREETINGS.morning : hour < 18 ? GREETINGS.afternoon : GREETINGS.evening
+}
+
+const StatCard = ({ label, value }: { label: string; value: string }) => (
+    <div
+        style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            borderRadius: "12px",
+            padding: "16px",
+            border: "1px solid rgba(212, 175, 55, 0.15)",
+        }}
+    >
+        <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.6)", textTransform: "uppercase" }}>
+            {label}
+        </span>
+        <div style={{ fontSize: "20px", fontWeight: "600", color: "#d4af37", marginTop: "8px" }}>
+            {value}
+        </div>
+    </div>
+)
 
 const DashboardWelcome = () => {
     const [greeting, setGreeting] = useState("Welcome")
 
     useEffect(() => {
-        const hour = new Date().getHours()
-        if (hour < 12) setGreeting("Good Morning")
-        else if (hour < 18) setGreeting("Good Afternoon")
-        else setGreeting("Good Evening")
+        setGreeting(getGreeting())
     }, [])
 
     return (
@@ -29,7 +51,7 @@ const DashboardWelcome = () => {
                 boxShadow: "0 10px 40px rgba(0, 0, 0, 0.15)",
             }}
         >
-            {/* Moroccan Pattern Overlay */}
+            {/* pattern overlay */}
             <div
                 style={{
                     position: "absolute",
@@ -39,10 +61,8 @@ const DashboardWelcome = () => {
                 }}
             />
 
-            {/* Content */}
             <div style={{ position: "relative", zIndex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
-                    {/* Logo/Brand */}
                     <div
                         style={{
                             width: "56px",
@@ -55,7 +75,7 @@ const DashboardWelcome = () => {
                             boxShadow: "0 4px 12px rgba(212, 175, 55, 0.3)",
                         }}
                     >
-                        <span style={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>ت</span>
+                        <span style={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>T</span>
                     </div>
                     <div>
                         <h1
@@ -81,7 +101,6 @@ const DashboardWelcome = () => {
                     </div>
                 </div>
 
-                {/* Stats Row */}
                 <div
                     style={{
                         display: "grid",
@@ -90,14 +109,13 @@ const DashboardWelcome = () => {
                         marginTop: "24px",
                     }}
                 >
-                    <StatCard label="Orders Today" value="—" icon="📦" />
-                    <StatCard label="Revenue" value="—" icon="💰" />
-                    <StatCard label="Products" value="—" icon="🏷️" />
-                    <StatCard label="Customers" value="—" icon="👥" />
+                    <StatCard label="Orders" value="--" />
+                    <StatCard label="Revenue" value="--" />
+                    <StatCard label="Products" value="--" />
+                    <StatCard label="Customers" value="--" />
                 </div>
             </div>
 
-            {/* Decorative Corner Accent */}
             <div
                 style={{
                     position: "absolute",
@@ -112,23 +130,6 @@ const DashboardWelcome = () => {
         </div>
     )
 }
-
-const StatCard = ({ label, value, icon }: { label: string; value: string; icon: string }) => (
-    <div
-        style={{
-            background: "rgba(255, 255, 255, 0.08)",
-            borderRadius: "12px",
-            padding: "16px",
-            border: "1px solid rgba(212, 175, 55, 0.15)",
-        }}
-    >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-            <span style={{ fontSize: "18px" }}>{icon}</span>
-            <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.6)", textTransform: "uppercase" }}>{label}</span>
-        </div>
-        <span style={{ fontSize: "20px", fontWeight: "600", color: "#d4af37" }}>{value}</span>
-    </div>
-)
 
 export const config = defineWidgetConfig({
     zone: "order.list.before",

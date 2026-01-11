@@ -1,8 +1,10 @@
+"use client"
 
 import { Container, Heading, Table, Text, Badge, Button, Input } from "@medusajs/ui"
 import { RouteConfig } from "@medusajs/admin-sdk"
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, Fragment, type ReactNode, type ChangeEvent } from "react"
 
+// Typo dyal sizing data - strict TypeScript
 interface SizingData {
     id: string
     customer_id: string
@@ -12,20 +14,16 @@ interface SizingData {
     hips?: number
     height?: number
     created_at?: string
-    metadata?: any
 }
 
-// Statistics Card Component
-const StatCard = ({
-    title,
-    value,
-    color = "amber"
-}: {
+interface StatCardProps {
     title: string
     value: string | number
-    color?: string
-}) => (
-    <div className={`bg-white rounded-lg border border-gray-200 p-4 shadow-sm`}>
+}
+
+// Stat Card - component dyalna l-statistiques
+const StatCard = ({ title, value }: StatCardProps) => (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
         <Text className="text-sm text-gray-500">{title}</Text>
         <Heading level="h3" className="text-xl font-bold mt-1">
             {value}
@@ -33,26 +31,30 @@ const StatCard = ({
     </div>
 )
 
-// Size Distribution Chart (simple bar chart)
-const SizeDistributionChart = ({ data }: { data: Record<string, number> }) => {
+interface SizeDistributionChartProps {
+    data: Record<string, number>
+}
+
+// Chart dyal distribution dyal sizes
+const SizeDistributionChart = ({ data }: SizeDistributionChartProps) => {
     const maxCount = Math.max(...Object.values(data), 1)
     const sizes = ["XS", "S", "M", "L", "XL", "XXL"]
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <Heading level="h4" className="text-sm font-medium text-gray-700 mb-4">
-                📊 Size Distribution
+            <Heading level="h3" className="text-sm font-medium text-gray-700 mb-4">
+                Size Distribution
             </Heading>
             <div className="flex items-end justify-between gap-2 h-40">
                 {sizes.map((size) => {
-                    const count = data[size] || 0
+                    const count = data[size] ?? 0
                     const height = maxCount > 0 ? (count / maxCount) * 100 : 0
 
                     return (
                         <div key={size} className="flex-1 flex flex-col items-center">
                             <div
                                 className="w-full bg-gradient-to-t from-amber-400 to-amber-300 rounded-t transition-all duration-500"
-                                style={{ height: `${height}%`, minHeight: count > 0 ? '8px' : '0' }}
+                                style={{ height: `${height}%`, minHeight: count > 0 ? "8px" : "0" }}
                             />
                             <Text className="text-xs font-medium mt-2">{size}</Text>
                             <Text className="text-xs text-gray-400">{count}</Text>
@@ -64,13 +66,22 @@ const SizeDistributionChart = ({ data }: { data: Record<string, number> }) => {
     )
 }
 
-// Detail Row Component
-const SizingDetailRow = ({ data, isExpanded, onToggle }: {
+interface SizingDetailRowProps {
     data: SizingData
     isExpanded: boolean
     onToggle: () => void
-}) => (
-    <>
+}
+
+// Helper bash n-jobo color dyal badge
+const getSizeBadgeColor = (size: string): "green" | "blue" | "grey" => {
+    if (size === "M") return "green"
+    if (size === "L" || size === "XL") return "blue"
+    return "grey"
+}
+
+// Row dyal table m3a details
+const SizingDetailRow = ({ data, isExpanded, onToggle }: SizingDetailRowProps) => (
+    <Fragment>
         <Table.Row
             className="hover:bg-gray-50 cursor-pointer"
             onClick={onToggle}
@@ -82,11 +93,7 @@ const SizingDetailRow = ({ data, isExpanded, onToggle }: {
                 {data.customer_id.slice(0, 12)}...
             </Table.Cell>
             <Table.Cell>
-                <Badge color={
-                    data.recommended_size === "M" ? "green" :
-                        data.recommended_size === "L" || data.recommended_size === "XL" ? "blue" :
-                            "grey"
-                }>
+                <Badge color={getSizeBadgeColor(data.recommended_size)}>
                     {data.recommended_size}
                 </Badge>
             </Table.Cell>
@@ -104,29 +111,29 @@ const SizingDetailRow = ({ data, isExpanded, onToggle }: {
         </Table.Row>
         {isExpanded && (
             <Table.Row className="bg-amber-50">
-                <Table.Cell colSpan={5} className="p-4">
+                <Table.Cell {...{ colSpan: 5 } as React.TdHTMLAttributes<HTMLTableCellElement>} className="p-4">
                     <div className="grid grid-cols-4 gap-4">
                         <div className="bg-white rounded-lg p-3 border border-amber-200">
                             <Text className="text-xs text-gray-500">Chest</Text>
-                            <Text className="font-bold">{data.chest || "N/A"} cm</Text>
+                            <Text className="font-bold">{data.chest ?? "N/A"} cm</Text>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-amber-200">
                             <Text className="text-xs text-gray-500">Waist</Text>
-                            <Text className="font-bold">{data.waist || "N/A"} cm</Text>
+                            <Text className="font-bold">{data.waist ?? "N/A"} cm</Text>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-amber-200">
                             <Text className="text-xs text-gray-500">Hips</Text>
-                            <Text className="font-bold">{data.hips || "N/A"} cm</Text>
+                            <Text className="font-bold">{data.hips ?? "N/A"} cm</Text>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-amber-200">
                             <Text className="text-xs text-gray-500">Height</Text>
-                            <Text className="font-bold">{data.height || "N/A"} cm</Text>
+                            <Text className="font-bold">{data.height ?? "N/A"} cm</Text>
                         </div>
                     </div>
                 </Table.Cell>
             </Table.Row>
         )}
-    </>
+    </Fragment>
 )
 
 const SizingPage = () => {
@@ -134,53 +141,56 @@ const SizingPage = () => {
     const [isLoading, setIsLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
     const [expandedId, setExpandedId] = useState<string | null>(null)
-    const [sizeFilter, setSizeFilter] = useState<string>("")
+    const [sizeFilter, setSizeFilter] = useState("")
 
-    useEffect(() => {
-        fetchSizingData()
-    }, [])
-
+    // Fetch data - async function
     const fetchSizingData = async () => {
         setIsLoading(true)
         try {
             const res = await fetch("/admin/sizing")
             const data = await res.json()
-            setSizingData(data.sizing_data || [])
+            setSizingData(data.sizing_data ?? [])
         } catch (err) {
-            console.error("Error fetching sizing data:", err)
+            console.error("Khata f fetch sizing data:", err)
         } finally {
             setIsLoading(false)
         }
     }
 
-    // Calculate size distribution
-    const sizeDistribution = useMemo(() => {
-        const dist: Record<string, number> = {}
-        sizingData.forEach(d => {
+    useEffect(() => {
+        fetchSizingData()
+    }, [])
+
+    // Calculate size distribution b reduce
+    const sizeDistribution = useMemo(() =>
+        sizingData.reduce<Record<string, number>>((dist, d) => {
             const size = d.recommended_size || "Unknown"
-            dist[size] = (dist[size] || 0) + 1
-        })
-        return dist
-    }, [sizingData])
+            dist[size] = (dist[size] ?? 0) + 1
+            return dist
+        }, {}),
+        [sizingData]
+    )
 
-    // Filtered data
+    // Filter data - modern chained methods
     const filteredData = useMemo(() => {
-        let result = [...sizingData]
+        const term = searchTerm.toLowerCase()
 
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase()
-            result = result.filter(d =>
+        return sizingData
+            .filter(d =>
+                !searchTerm ||
                 d.id.toLowerCase().includes(term) ||
                 d.customer_id.toLowerCase().includes(term)
             )
-        }
-
-        if (sizeFilter) {
-            result = result.filter(d => d.recommended_size === sizeFilter)
-        }
-
-        return result
+            .filter(d => !sizeFilter || d.recommended_size === sizeFilter)
     }, [sizingData, searchTerm, sizeFilter])
+
+    // Most common size
+    const mostCommonSize = useMemo(() => {
+        const entries = Object.entries(sizeDistribution)
+        return entries.length > 0
+            ? entries.sort((a, b) => b[1] - a[1])[0][0]
+            : "N/A"
+    }, [sizeDistribution])
 
     // Export to CSV
     const exportToCSV = () => {
@@ -189,10 +199,10 @@ const SizingPage = () => {
             d.id,
             d.customer_id,
             d.recommended_size,
-            d.chest || "",
-            d.waist || "",
-            d.hips || "",
-            d.height || ""
+            d.chest ?? "",
+            d.waist ?? "",
+            d.hips ?? "",
+            d.height ?? ""
         ])
 
         const csvContent = [headers, ...rows]
@@ -203,8 +213,13 @@ const SizingPage = () => {
         const url = URL.createObjectURL(blob)
         const link = document.createElement("a")
         link.href = url
-        link.download = `sizing-data-${new Date().toISOString().split('T')[0]}.csv`
+        link.download = `sizing-data-${new Date().toISOString().split("T")[0]}.csv`
         link.click()
+    }
+
+    // Toggle expanded row
+    const handleToggle = (id: string) => {
+        setExpandedId(prev => prev === id ? null : id)
     }
 
     return (
@@ -212,7 +227,7 @@ const SizingPage = () => {
             {/* Page Header */}
             <div className="mb-8">
                 <Heading level="h1" className="text-3xl font-bold mb-2">
-                    📏 Sizing Data
+                    Sizing Data
                 </Heading>
                 <Text className="text-gray-500">
                     Customer measurements and size recommendations
@@ -222,10 +237,7 @@ const SizingPage = () => {
             {/* Statistics and Chart */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <StatCard title="Total Records" value={sizingData.length} />
-                <StatCard
-                    title="Most Common Size"
-                    value={Object.entries(sizeDistribution).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A"}
-                />
+                <StatCard title="Most Common Size" value={mostCommonSize} />
                 <StatCard
                     title="Unique Customers"
                     value={new Set(sizingData.map(d => d.customer_id)).size}
@@ -242,7 +254,7 @@ const SizingPage = () => {
                     <Input
                         placeholder="Search by ID or Customer ID..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                     />
                 </div>
                 <select
@@ -281,8 +293,8 @@ const SizingPage = () => {
                     <Table.Body>
                         {isLoading ? (
                             <Table.Row>
-                                <Table.Cell colSpan={5} className="text-center py-8">
-                                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500"></div>
+                                <Table.Cell {...{ colSpan: 5 } as React.TdHTMLAttributes<HTMLTableCellElement>} className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500" />
                                     <Text className="ml-2">Loading sizing data...</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -292,12 +304,12 @@ const SizingPage = () => {
                                     key={d.id}
                                     data={d}
                                     isExpanded={expandedId === d.id}
-                                    onToggle={() => setExpandedId(expandedId === d.id ? null : d.id)}
+                                    onToggle={() => handleToggle(d.id)}
                                 />
                             ))
                         ) : (
                             <Table.Row>
-                                <Table.Cell colSpan={5} className="text-center py-8">
+                                <Table.Cell {...{ colSpan: 5 } as React.TdHTMLAttributes<HTMLTableCellElement>} className="text-center py-8">
                                     <Text className="text-gray-500">
                                         {searchTerm || sizeFilter ? "No data matches your filters" : "No sizing data found"}
                                     </Text>
@@ -318,11 +330,5 @@ const SizingPage = () => {
     )
 }
 
-export const config: RouteConfig = {
-    link: {
-        label: "Sizing Data",
-        icon: "Ruler",
-    },
-}
 
 export default SizingPage

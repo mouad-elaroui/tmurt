@@ -1,16 +1,9 @@
-/**
- * Login Page Branding Widget
- * Injects Moroccan styling into the login page
- */
+// tmurt login page branding
 
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
 import { useEffect } from "react"
 
-// Custom login page styles
 const loginStyles = `
-  /* Login Page Complete Restyle */
-  
-  /* Background with Moroccan Pattern */
   body:has([data-testid="login-card"]),
   body:has(form[action*="login"]),
   [data-testid="login-view"],
@@ -20,7 +13,6 @@ const loginStyles = `
     position: relative !important;
   }
 
-  /* Add pattern overlay to login */
   body:has([data-testid="login-card"])::before,
   body:has(form[action*="login"])::before {
     content: '';
@@ -32,7 +24,6 @@ const loginStyles = `
     z-index: 0;
   }
 
-  /* Login Card Styling */
   [data-testid="login-card"],
   .login-card,
   form[action*="login"] {
@@ -44,7 +35,6 @@ const loginStyles = `
     z-index: 1 !important;
   }
 
-  /* Logo Area Enhancement */
   [data-testid="login-card"] > div:first-child,
   .login-card > div:first-child {
     background: linear-gradient(135deg, #fdfbf7 0%, #f9f3e8 100%) !important;
@@ -52,7 +42,6 @@ const loginStyles = `
     padding: 32px !important;
   }
 
-  /* Input Fields */
   [data-testid="login-card"] input,
   form[action*="login"] input {
     border: 2px solid #e8e0d5 !important;
@@ -68,14 +57,12 @@ const loginStyles = `
     outline: none !important;
   }
 
-  /* Labels */
   [data-testid="login-card"] label,
   form[action*="login"] label {
     color: #6b5a42 !important;
     font-weight: 500 !important;
   }
 
-  /* Login Button */
   [data-testid="login-card"] button[type="submit"],
   form[action*="login"] button[type="submit"] {
     background: linear-gradient(135deg, #d4af37 0%, #b8963e 100%) !important;
@@ -86,7 +73,6 @@ const loginStyles = `
     color: white !important;
     box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3) !important;
     transition: all 0.3s ease !important;
-    cursor: pointer !important;
   }
 
   [data-testid="login-card"] button[type="submit"]:hover,
@@ -96,29 +82,16 @@ const loginStyles = `
     box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important;
   }
 
-  /* Error Messages */
-  [data-testid="login-card"] [role="alert"],
-  form[action*="login"] [role="alert"] {
-    background: #fef2f2 !important;
-    border: 1px solid #fecaca !important;
-    border-radius: 8px !important;
-    color: #dc2626 !important;
-  }
-
-  /* Forgot Password Link */
   [data-testid="login-card"] a,
   form[action*="login"] a {
     color: #b8963e !important;
-    font-weight: 500 !important;
   }
 
   [data-testid="login-card"] a:hover,
   form[action*="login"] a:hover {
     color: #d4af37 !important;
-    text-decoration: underline !important;
   }
 
-  /* Add Tmurt branding text */
   [data-testid="login-card"]::after {
     content: 'Tmurt Admin';
     position: absolute;
@@ -127,34 +100,27 @@ const loginStyles = `
     transform: translateX(-50%);
     color: rgba(255, 255, 255, 0.6);
     font-size: 14px;
-    font-weight: 500;
   }
-`;
+`
 
 const LoginBranding = () => {
-    useEffect(() => {
-        // Check if styles already injected
-        const existingStyles = document.getElementById("tmurt-login-styles")
-        if (existingStyles) return
+  useEffect(() => {
+    const existing = document.getElementById("tmurt-login-styles")
+    if (existing) return
 
-        // Inject login-specific styles
-        const styleElement = document.createElement("style")
-        styleElement.id = "tmurt-login-styles"
-        styleElement.textContent = loginStyles
-        document.head.appendChild(styleElement)
+    const style = document.createElement("style")
+    style.id = "tmurt-login-styles"
+    style.textContent = loginStyles
+    document.head.appendChild(style)
 
-        return () => {
-            const el = document.getElementById("tmurt-login-styles")
-            if (el) el.remove()
-        }
-    }, [])
+    return () => document.getElementById("tmurt-login-styles")?.remove()
+  }, [])
 
-    return null
+  return null
 }
 
-// This will load on product and order pages but inject globally
 export const config = defineWidgetConfig({
-    zone: "product.list.before",
+  zone: "product.list.before",
 })
 
 export default LoginBranding

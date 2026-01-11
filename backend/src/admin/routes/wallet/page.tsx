@@ -1,14 +1,25 @@
+"use client"
 
 import { Container, Heading, Table, Text, Badge, Button, Input } from "@medusajs/ui"
 import { RouteConfig } from "@medusajs/admin-sdk"
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, type ReactNode } from "react"
+
+// Typo dyal wallet - strict TypeScript
+interface WalletMetadata {
+    source?: string
+    last_transaction?: {
+        type: "credit" | "debit"
+        amount: number
+        timestamp?: string
+    }
+}
 
 interface Wallet {
     id: string
     customer_id: string
     balance: number
     currency_code: string
-    metadata?: any
+    metadata?: WalletMetadata
 }
 
 interface WalletStats {
@@ -18,18 +29,15 @@ interface WalletStats {
     currencies: Record<string, number>
 }
 
-// Statistics Card Component
-const StatCard = ({
-    title,
-    value,
-    subtitle,
-    icon
-}: {
+interface StatCardProps {
     title: string
     value: string | number
     subtitle?: string
-    icon: React.ReactNode
-}) => (
+    icon: ReactNode
+}
+
+// Stat Card Component
+const StatCard = ({ title, value, subtitle, icon }: StatCardProps) => (
     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
         <div className="flex items-start justify-between">
             <div>
@@ -41,26 +49,23 @@ const StatCard = ({
                     <Text className="text-xs text-gray-400 mt-1">{subtitle}</Text>
                 )}
             </div>
-            <div className="p-3 bg-amber-50 rounded-lg">
-                {icon}
-            </div>
+            <div className="p-3 bg-amber-50 rounded-lg">{icon}</div>
         </div>
     </div>
 )
 
-// Wallet Detail Modal
-const WalletDetailModal = ({
-    wallet,
-    onClose
-}: {
+interface WalletDetailModalProps {
     wallet: Wallet | null
     onClose: () => void
-}) => {
+}
+
+// Modal dyal tafasil l-wallet
+const WalletDetailModal = ({ wallet, onClose }: WalletDetailModalProps) => {
+    // Early return - modern pattern
     if (!wallet) return null
 
-    const transactions = (wallet.metadata as any)?.last_transaction
-        ? [(wallet.metadata as any).last_transaction]
-        : []
+    const transaction = wallet.metadata?.last_transaction
+    const transactions = transaction ? [transaction] : []
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -73,6 +78,7 @@ const WalletDetailModal = ({
                         <button
                             onClick={onClose}
                             className="text-white/80 hover:text-white"
+                            type="button"
                         >
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -100,11 +106,11 @@ const WalletDetailModal = ({
                         {transactions.length > 0 && (
                             <div>
                                 <Text className="font-medium mb-2">Recent Activity</Text>
-                                {transactions.map((tx: any, i: number) => (
+                                {transactions.map((tx, i) => (
                                     <div key={i} className="bg-gray-50 rounded-lg p-3 text-sm">
                                         <div className="flex justify-between">
                                             <Badge color={tx.type === "credit" ? "green" : "red"}>
-                                                {tx.type?.toUpperCase()}
+                                                {tx.type.toUpperCase()}
                                             </Badge>
                                             <Text>{tx.amount} {wallet.currency_code}</Text>
                                         </div>
@@ -124,40 +130,43 @@ const WalletDetailModal = ({
     )
 }
 
+type SortField = "balance" | "customer_id"
+type SortOrder = "asc" | "desc"
+
 const WalletPage = () => {
     const [wallets, setWallets] = useState<Wallet[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
-    const [sortBy, setSortBy] = useState<"balance" | "customer_id">("balance")
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+    const [sortBy, setSortBy] = useState<SortField>("balance")
+    const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
     const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null)
 
-    useEffect(() => {
-        fetchWallets()
-    }, [])
-
+    // Fetch wallets - async function
     const fetchWallets = async () => {
         setIsLoading(true)
         try {
             const res = await fetch("/admin/wallets")
             const data = await res.json()
-            setWallets(data.wallets || [])
+            setWallets(data.wallets ?? [])
         } catch (err) {
-            console.error("Error fetching wallets:", err)
+            console.error("Khata f fetch wallets:", err)
         } finally {
             setIsLoading(false)
         }
     }
 
-    // Calculate statistics
-    const stats: WalletStats = useMemo(() => {
-        const totalBalance = wallets.reduce((sum, w) => sum + Number(w.balance), 0)
-        const currencies: Record<string, number> = {}
+    useEffect(() => {
+        fetchWallets()
+    }, [])
 
-        wallets.forEach(w => {
+    // Calculate stats - useMemo bach ma n3awdouch lhsab kol render
+    const stats = useMemo<WalletStats>(() => {
+        const totalBalance = wallets.reduce((sum, w) => sum + Number(w.balance), 0)
+        const currencies = wallets.reduce<Record<string, number>>((acc, w) => {
             const code = w.currency_code || "MAD"
-            currencies[code] = (currencies[code] || 0) + Number(w.balance)
-        })
+            acc[code] = (acc[code] ?? 0) + Number(w.balance)
+            return acc
+        }, {})
 
         return {
             totalWallets: wallets.length,
@@ -167,42 +176,40 @@ const WalletPage = () => {
         }
     }, [wallets])
 
-    // Filtered and sorted wallets
+    // Filter w sort wallets
     const filteredWallets = useMemo(() => {
-        let result = [...wallets]
+        const term = searchTerm.toLowerCase()
 
-        // Search filter
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase()
-            result = result.filter(w =>
+        return [...wallets]
+            .filter(w =>
+                !searchTerm ||
                 w.id.toLowerCase().includes(term) ||
                 w.customer_id.toLowerCase().includes(term)
             )
-        }
+            .sort((a, b) => {
+                const multiplier = sortOrder === "asc" ? 1 : -1
 
-        // Sort
-        result.sort((a, b) => {
-            const aVal = sortBy === "balance" ? Number(a.balance) : a.customer_id
-            const bVal = sortBy === "balance" ? Number(b.balance) : b.customer_id
-
-            if (typeof aVal === "number" && typeof bVal === "number") {
-                return sortOrder === "asc" ? aVal - bVal : bVal - aVal
-            }
-            return sortOrder === "asc"
-                ? String(aVal).localeCompare(String(bVal))
-                : String(bVal).localeCompare(String(aVal))
-        })
-
-        return result
+                return sortBy === "balance"
+                    ? (Number(a.balance) - Number(b.balance)) * multiplier
+                    : a.customer_id.localeCompare(b.customer_id) * multiplier
+            })
     }, [wallets, searchTerm, sortBy, sortOrder])
 
-    const handleSort = (column: "balance" | "customer_id") => {
-        if (sortBy === column) {
-            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-        } else {
-            setSortBy(column)
-            setSortOrder("desc")
-        }
+    // Handle sort - toggle order wla beddel column
+    const handleSort = (column: SortField) => {
+        setSortBy(column)
+        setSortOrder(prev =>
+            sortBy === column
+                ? (prev === "asc" ? "desc" : "asc")
+                : "desc"
+        )
+    }
+
+    // Helper bash n-formattiw balance badge color
+    const getBalanceColor = (balance: number) => {
+        if (balance > 100) return "green"
+        if (balance > 0) return "orange"
+        return "grey"
     }
 
     return (
@@ -210,7 +217,7 @@ const WalletPage = () => {
             {/* Page Header */}
             <div className="mb-8">
                 <Heading level="h1" className="text-3xl font-bold mb-2">
-                    💰 Wallet Management
+                    Wallet Management
                 </Heading>
                 <Text className="text-gray-500">
                     Monitor and manage customer wallet balances
@@ -300,8 +307,8 @@ const WalletPage = () => {
                     <Table.Body>
                         {isLoading ? (
                             <Table.Row>
-                                <Table.Cell colSpan={5} className="text-center py-8">
-                                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500"></div>
+                                <Table.Cell {...{ colSpan: 5 } as React.TdHTMLAttributes<HTMLTableCellElement>} className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500" />
                                     <Text className="ml-2">Loading wallets...</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -319,7 +326,7 @@ const WalletPage = () => {
                                         {w.customer_id.slice(0, 16)}...
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Badge color={Number(w.balance) > 100 ? "green" : Number(w.balance) > 0 ? "orange" : "grey"}>
+                                        <Badge color={getBalanceColor(Number(w.balance))}>
                                             {Number(w.balance).toFixed(2)}
                                         </Badge>
                                     </Table.Cell>
@@ -342,7 +349,7 @@ const WalletPage = () => {
                             ))
                         ) : (
                             <Table.Row>
-                                <Table.Cell colSpan={5} className="text-center py-8">
+                                <Table.Cell {...{ colSpan: 5 } as React.TdHTMLAttributes<HTMLTableCellElement>} className="text-center py-8">
                                     <Text className="text-gray-500">
                                         {searchTerm ? "No wallets match your search" : "No wallets found"}
                                     </Text>
@@ -371,11 +378,5 @@ const WalletPage = () => {
     )
 }
 
-export const config: RouteConfig = {
-    link: {
-        label: "Wallets",
-        icon: "CurrencyDollar",
-    },
-}
 
 export default WalletPage

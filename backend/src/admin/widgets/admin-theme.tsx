@@ -1,24 +1,9 @@
-/**
- * Global Moroccan Theme Styles for Admin Dashboard
- * Injects custom CSS to style the Medusa admin with Tmurt branding
- * REVERTED to Lighter Cream/Gold Aesthetics per user preference
- */
+// tmurt admin theme styles
 
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
 import { useEffect } from "react"
 
-// Moroccan theme CSS to inject globally (Light/Cream Version)
-const moroccanAdminStyles = `
-  /* ============================================
-     TMURT Admin - Light Moroccan Theme
-     ============================================ */
-
-  /* Login Page - Light & Airy */
-  .login-page, [data-testid="login-view"], body:has(form[action*="login"]) {
-    background: linear-gradient(135deg, #fdfbf7 0%, #f0e4cc 100%) !important;
-  }
-
-  /* Primary Color Overrides - Gold Theme */
+const themeStyles = `
   :root {
     --ui-fg-interactive: #d4af37 !important;
     --ui-fg-interactive-hover: #b8963e !important;
@@ -26,18 +11,15 @@ const moroccanAdminStyles = `
     --ui-border-interactive: #d4af37 !important;
   }
 
-  /* Navigation Sidebar - Dark but Clean */
   [data-testid="nav-sidebar"], nav[aria-label="Main"] {
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%) !important;
     border-right: 1px solid rgba(212, 175, 55, 0.2) !important;
   }
 
-  /* Sidebar Branding Text */
   [data-testid="nav-store-name"] {
     color: #d4af37 !important;
   }
 
-  /* Sidebar Links */
   [data-testid="nav-sidebar"] a, nav[aria-label="Main"] a {
     color: #e8e8e8 !important;
     transition: all 0.2s ease !important;
@@ -54,7 +36,6 @@ const moroccanAdminStyles = `
     color: #d4af37 !important;
   }
 
-  /* Primary Buttons - Gold Gradient */
   button[data-variant="primary"], .ui-button-primary, [data-testid="submit-button"] {
     background: linear-gradient(135deg, #d4af37 0%, #b8963e 100%) !important;
     border: none !important;
@@ -67,44 +48,37 @@ const moroccanAdminStyles = `
     transform: translateY(-1px) !important;
   }
 
-  /* Table Header Styling */
   th, [role="columnheader"] {
     background: linear-gradient(135deg, #fdfbf7 0%, #f9f3e8 100%) !important;
     color: #8b7355 !important;
     font-weight: 600 !important;
   }
 
-  /* Loading Spinner */
   .animate-spin {
     color: #d4af37 !important;
   }
-`;
+`
 
-// Widget component that injects styles on mount
+const updateStoreName = () => {
+  document.querySelectorAll('[data-testid="nav-store-name"], .font-medium.text-small').forEach((el) => {
+    if (el.textContent?.includes("Medusa Store")) el.textContent = "Tmurt"
+  })
+}
+
 const AdminThemeInjector = () => {
   useEffect(() => {
-    // 1. Text Replacement Logic (Keep this from correct version)
-    const updateStoreNameUI = () => {
-      const storeNameEls = document.querySelectorAll('[data-testid="nav-store-name"], .font-medium.text-small')
-      storeNameEls.forEach(el => {
-        if (el.textContent?.includes("Medusa Store")) {
-          el.textContent = "Tmurt"
-        }
-      })
-    }
-    const interval = setInterval(updateStoreNameUI, 1000)
+    const interval = setInterval(updateStoreName, 1000)
 
-    // 2. Style Injection
-    const existingStyles = document.getElementById("tmurt-admin-styles")
-    if (existingStyles) {
-      existingStyles.textContent = moroccanAdminStyles
-      return
+    const existing = document.getElementById("tmurt-admin-styles")
+    if (existing) {
+      existing.textContent = themeStyles
+      return () => clearInterval(interval)
     }
 
-    const styleElement = document.createElement("style")
-    styleElement.id = "tmurt-admin-styles"
-    styleElement.textContent = moroccanAdminStyles
-    document.head.appendChild(styleElement)
+    const style = document.createElement("style")
+    style.id = "tmurt-admin-styles"
+    style.textContent = themeStyles
+    document.head.appendChild(style)
 
     return () => clearInterval(interval)
   }, [])

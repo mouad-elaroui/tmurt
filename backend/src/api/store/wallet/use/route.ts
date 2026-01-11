@@ -9,7 +9,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
         const walletService: WalletService = req.scope.resolve(WALLET_MODULE)
 
         // Get customer ID from auth context
-        const customerId = (req as any).auth_context?.actor_id
+        const customerId = (req as { auth_context?: { actor_id?: string } }).auth_context?.actor_id
 
         if (!customerId) {
             res.status(401).json({
@@ -57,18 +57,9 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
         // Deduct amount from wallet
         const newBalance = currentBalance - amount
-        await walletService.updateWallets(wallet.id, {
+        await walletService.updateWallets({
+            id: wallet.id,
             balance: newBalance,
-            metadata: {
-                ...((wallet.metadata as object) || {}),
-                last_transaction: {
-                    type: "debit",
-                    amount: amount,
-                    cart_id: cart_id,
-                    order_id: order_id,
-                    timestamp: new Date().toISOString()
-                }
-            }
         })
 
         res.json({
@@ -79,11 +70,12 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
             new_balance: newBalance,
             currency_code: wallet.currency_code || "MAD"
         })
-    } catch (error: any) {
-        console.error("Error using wallet:", error)
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error"
+        console.error("Error using wallet:", message)
         res.status(500).json({
             message: "Error processing wallet payment",
-            error: error.message
+            error: message
         })
     }
 }
