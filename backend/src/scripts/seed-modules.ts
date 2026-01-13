@@ -4,6 +4,9 @@ import { ExecArgs } from "@medusajs/framework/types"
 import { WALLET_MODULE } from "../modules/wallet"
 import { SIZING_MODULE } from "../modules/sizing"
 import { DIGITAL_PASSPORT_MODULE } from "../modules/digital-passport"
+import type { WalletService } from "../modules/wallet/service"
+import type { SizingService } from "../modules/sizing/service"
+import type { DigitalPassportService } from "../modules/digital-passport/service"
 
 interface WalletData {
     customer_id: string
@@ -37,9 +40,9 @@ const DEMO_CUSTOMERS = [
 ]
 
 export default async function seedModules({ container }: ExecArgs): Promise<void> {
-    const walletService = container.resolve(WALLET_MODULE)
-    const sizingService = container.resolve(SIZING_MODULE)
-    const passportService = container.resolve(DIGITAL_PASSPORT_MODULE)
+    const walletService = container.resolve(WALLET_MODULE) as WalletService
+    const sizingService = container.resolve(SIZING_MODULE) as SizingService
+    const passportService = container.resolve(DIGITAL_PASSPORT_MODULE) as DigitalPassportService
 
     console.log("=== SEED MODULES ===\n")
 
