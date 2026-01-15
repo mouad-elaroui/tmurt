@@ -3,7 +3,7 @@
 
 FROM node:20-alpine
 
-# Set production environment
+# Set environment variables
 ENV NODE_ENV=production
 ENV DISABLE_ADMIN=true
 
@@ -12,13 +12,16 @@ WORKDIR /app
 # Copy package files first for better layer caching
 COPY package.json package-lock.json* ./
 
-# Install production dependencies only (skip devDependencies)
-RUN npm ci --omit=dev --ignore-scripts 2>/dev/null || npm install --omit=dev --ignore-scripts
+# Install ALL dependencies (needed for build)
+RUN npm install --legacy-peer-deps
 
 # Copy application source
 COPY . .
 
-# Expose port
+# Build Medusa (with admin disabled, this is fast)
+RUN npm run build
+
+# Expose port (Railway provides PORT env var)
 EXPOSE 9000
 
 # Start command (db:migrate runs before start)
