@@ -77,12 +77,12 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                 leaveTo="-translate-x-full"
               >
                 <PopoverPanel className="fixed inset-y-0 left-0 w-full sm:w-[400px] z-[51] overflow-hidden flex flex-col shadow-2xl">
-                  {/* Background */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf7] via-[#f9f3e8] to-[#f0e4cc]" />
+                  {/* Background - White for better readability */}
+                  <div className="absolute inset-0 bg-white" />
 
-                  {/* Pattern Overlay */}
+                  {/* Pattern Overlay - Very subtle */}
                   <div
-                    className="absolute inset-0 pointer-events-none opacity-[0.06]"
+                    className="absolute inset-0 pointer-events-none opacity-[0.03]"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4af37' fill-rule='evenodd'%3E%3Cpath d='M20 0L0 20l20 20 20-20z'/%3E%3Cpath d='M20 10l-10 10 10 10 10-10z' fill-opacity='0.5'/%3E%3C/g%3E%3C/svg%3E")`,
                     }}
@@ -205,8 +205,8 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                   </div>
 
                   {/* Footer */}
-                  <div className="relative z-10 p-4 border-t border-[#d4af37]/30 bg-gradient-to-r from-[#f9f3e8] to-[#f0e4cc]">
-                    <Text className="text-center text-[#8b7355] text-xs tracking-wider">
+                  <div className="relative z-10 p-4 border-t border-gray-200 bg-gray-50">
+                    <Text className="text-center text-gray-500 text-xs tracking-wider">
                       AUTHENTIC AMAZIGH HERITAGE
                     </Text>
                   </div>

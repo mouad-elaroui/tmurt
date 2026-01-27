@@ -56,8 +56,11 @@ const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
           </>
         )}
       </div>
+      <DigitalPassport orderId={order.id} />
     </div>
   )
 }
+
+import DigitalPassport from "../digital-passport"
 
 export default OrderDetails

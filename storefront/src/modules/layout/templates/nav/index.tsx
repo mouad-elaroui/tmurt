@@ -8,6 +8,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 import NavAccountButton from "@modules/layout/components/nav-account-button"
+import NavWalletButton from "@modules/layout/components/nav-wallet-button"
 
 export default async function Nav() {
   const [regions, locales, currentLocale] = await Promise.all([
@@ -43,10 +44,9 @@ export default async function Nav() {
             </LocalizedClientLink>
           </div>
 
-          <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
-            <div className="hidden small:flex items-center gap-x-6 h-full">
-              <NavAccountButton />
-            </div>
+          <div className="flex items-center gap-x-4 h-full flex-1 basis-0 justify-end">
+            <NavWalletButton />
+            <NavAccountButton />
             <Suspense
               fallback={
                 <LocalizedClientLink

@@ -17,10 +17,10 @@ export const convertToLocale = ({
 }: ConvertToLocaleParams) => {
   return currency_code && !isEmpty(currency_code)
     ? new Intl.NumberFormat(locale, {
-        style: "currency",
-        currency: currency_code,
-        minimumFractionDigits,
-        maximumFractionDigits,
-      }).format(amount)
+      style: "currency",
+      currency: currency_code,
+      minimumFractionDigits: minimumFractionDigits ?? (amount % 1 === 0 ? 0 : 2),
+      maximumFractionDigits: maximumFractionDigits ?? 2,
+    }).format(amount)
     : amount.toString()
 }

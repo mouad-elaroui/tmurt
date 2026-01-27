@@ -89,6 +89,20 @@ const AccountNav = ({
                   </LocalizedClientLink>
                 </li>
                 <li>
+                  <LocalizedClientLink
+                    href="/account/wallet"
+                    className="flex items-center justify-between py-4 border-b border-gray-200 px-8"
+                    data-testid="wallet-link"
+                  >
+                    <div className="flex items-center gap-x-2">
+                      {/* You can use a wallet icon here if available, or re-use another one */}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" /></svg>
+                      <span>Wallet</span>
+                    </div>
+                    <ChevronDown className="transform -rotate-90" />
+                  </LocalizedClientLink>
+                </li>
+                <li>
                   <button
                     type="button"
                     className="flex items-center justify-between py-4 border-b border-gray-200 px-8 w-full"
@@ -148,6 +162,15 @@ const AccountNav = ({
                   data-testid="orders-link"
                 >
                   Orders
+                </AccountNavLink>
+              </li>
+              <li>
+                <AccountNavLink
+                  href="/account/wallet"
+                  route={route!}
+                  data-testid="wallet-link"
+                >
+                  Wallet
                 </AccountNavLink>
               </li>
               <li className="text-grey-700">

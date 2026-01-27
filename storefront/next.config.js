@@ -13,9 +13,19 @@ const S3_PATHNAME = process.env.MEDUSA_CLOUD_S3_PATHNAME
  */
 const nextConfig = {
   reactStrictMode: true,
+
+  // Performance optimizations
+  poweredByHeader: false,
+  compress: true,
+
+  // Experimental performance features
+  experimental: {
+    optimizePackageImports: ['@medusajs/ui', '@medusajs/icons', 'framer-motion'],
+  },
+
   logging: {
     fetches: {
-      fullUrl: true,
+      fullUrl: false, // Reduce console logging for performance
     },
   },
   eslint: {
@@ -25,6 +35,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    // Optimize image loading
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96],
+    formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
         protocol: "http",
@@ -56,6 +70,41 @@ const nextConfig = {
         ]
         : []),
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/store/:path*",
+        destination: `${process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"}/store/:path*`,
+      },
+      {
+        source: "/demo/:path*",
+        destination: `${process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"}/demo/:path*`,
+      },
+    ]
+  },
+  // Headers for caching
+  async headers() {
+    return [
+      {
+        source: '/:all*(svg|jpg|png|webp|avif)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+        ],
+      },
+    ]
   },
 }
 

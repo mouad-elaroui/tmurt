@@ -86,19 +86,103 @@ export const listProducts = async ({
 }
 
 /**
- * Hadi katjib 100 produit l cache dyal Next.js o kat-rtbhom 3la 7ssab sortBy.
- * Men be3d kat-red les produits m-paginyin 3la 7ssab l-page o limit.
+ * Filter products by category slug - matches product title, handle, or tags
+ */
+const filterProductsByCategory = (
+  products: HttpTypes.StoreProduct[],
+  categorySlug?: string
+): HttpTypes.StoreProduct[] => {
+  if (!categorySlug || categorySlug === "all") {
+    return products
+  }
+
+  // Map category slug to search terms
+  // Example: "kaftan" should match "kaftan" OR "takchita"
+  // "babouche" should match "babouche" OR "balgha"
+  const getSearchTerms = (slug: string): string[] => {
+    const term = slug.toLowerCase()
+
+    if (term === "kaftan") {
+      return ["kaftan", "takchita"]
+    }
+
+    if (term === "babouche") {
+      return ["babouche", "balgha", "belgha"]
+    }
+
+    return [term]
+  }
+
+  const searchTerms = getSearchTerms(categorySlug)
+
+  return products.filter((product) => {
+    return searchTerms.some(term => {
+      // Check product title
+      const titleMatch = product.title?.toLowerCase().includes(term)
+
+      // Check product handle/slug
+      const handleMatch = product.handle?.toLowerCase().includes(term)
+
+      // Check product description
+      const descMatch = product.description?.toLowerCase().includes(term)
+
+      // Check product tags
+      const tagsMatch = product.tags?.some((tag: any) =>
+        tag.value?.toLowerCase().includes(term)
+      )
+
+      // Check metadata
+      const metaMatch = product.metadata?.category?.toString().toLowerCase().includes(term)
+
+      return titleMatch || handleMatch || descMatch || tagsMatch || metaMatch
+    })
+  })
+}
+
+/**
+ * Filter products by gender from metadata
+ */
+const filterProductsByGender = (
+  products: HttpTypes.StoreProduct[],
+  genderFilter?: string
+): HttpTypes.StoreProduct[] => {
+  if (!genderFilter || genderFilter === "all") {
+    return products
+  }
+
+  return products.filter((product) => {
+    const productGender = (product.metadata?.gender as string)?.toLowerCase()
+    const filterGender = genderFilter.toLowerCase()
+
+    // Check metadata
+    if (productGender === filterGender) return true
+
+    // Fallback: check title for "men's" or "women's"
+    const title = product.title?.toLowerCase() || ""
+    if (filterGender === "men" && (title.includes("men") || title.includes("homme"))) return true
+    if (filterGender === "women" && (title.includes("women") || title.includes("femme"))) return true
+
+    return false
+  })
+}
+
+/**
+ * Fetch products with sorting, category, and gender filtering.
  */
 export const listProductsWithSort = async ({
   page = 0,
   queryParams,
   sortBy = "created_at",
   countryCode,
+  categorySlug,
+  genderFilter,
 }: {
   page?: number
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
   sortBy?: SortOptions
   countryCode: string
+  categorySlug?: string
+  genderFilter?: string
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
@@ -107,7 +191,7 @@ export const listProductsWithSort = async ({
   const limit = queryParams?.limit || 12
 
   const {
-    response: { products, count },
+    response: { products },
   } = await listProducts({
     pageParam: 0,
     queryParams: {
@@ -117,7 +201,15 @@ export const listProductsWithSort = async ({
     countryCode,
   })
 
-  const sortedProducts = sortProducts(products, sortBy)
+  // Filter by category
+  let filteredProducts = filterProductsByCategory(products, categorySlug)
+
+  // Filter by gender
+  filteredProducts = filterProductsByGender(filteredProducts, genderFilter)
+
+  const count = filteredProducts.length
+
+  const sortedProducts = sortProducts(filteredProducts, sortBy)
 
   const pageParam = (page - 1) * limit
 
