@@ -27,8 +27,12 @@ interface ProductTemplate {
     price: number
 }
 
-// Products li user 3tana - with proper UIDs and metadata
+// Base URL l-images local (storefront public folder) - all in /products
+const IMG_BASE = "http://localhost:8000/products"
+
+// Products li user 3tana - with proper UIDs and local Moroccan images (12 total)
 const PRODUCTS: ProductTemplate[] = [
+    // === KAFTAN ===
     {
         uid: "TM-WOMEN-KAFTAN-001",
         title: "Kaftan Royal Marocain",
@@ -37,9 +41,55 @@ const PRODUCTS: ProductTemplate[] = [
         category: "Kaftan",
         gender: "Women",
         weight: 800,
-        image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800",
+        image: `${IMG_BASE}/kaftan_royal.png`,
         price: 4500,
     },
+    {
+        uid: "TM-WOMEN-KAFTAN-002",
+        title: "Burgundy Silk Kaftan",
+        handle: "burgundy-silk-kaftan",
+        description: "Luxurious burgundy silk kaftan with traditional Moroccan patterns and gold accents.",
+        category: "Kaftan",
+        gender: "Women",
+        weight: 600,
+        image: `${IMG_BASE}/kaftan-burgundy.png`,
+        price: 3800,
+    },
+    {
+        uid: "TM-WOMEN-KAFTAN-003",
+        title: "Emerald Velvet Kaftan",
+        handle: "emerald-velvet-kaftan",
+        description: "Stunning emerald green velvet kaftan with intricate gold embroidery.",
+        category: "Kaftan",
+        gender: "Women",
+        weight: 900,
+        image: `${IMG_BASE}/kaftan-emerald.png`,
+        price: 4200,
+    },
+    // === TAKCHITA ===
+    {
+        uid: "TM-WOMEN-TAKCHITA-001",
+        title: "Golden Bridal Takchita",
+        handle: "golden-bridal-takchita",
+        description: "Stunning two-piece Takchita for brides, featuring white silk base and sheer embroidered overlay.",
+        category: "Kaftan",
+        gender: "Women",
+        weight: 1200,
+        image: `${IMG_BASE}/takchita_bridal.png`,
+        price: 8500,
+    },
+    {
+        uid: "TM-WOMEN-TAKCHITA-002",
+        title: "Gold Celebration Takchita",
+        handle: "gold-celebration-takchita",
+        description: "Elegant gold takchita perfect for celebrations and special occasions.",
+        category: "Kaftan",
+        gender: "Women",
+        weight: 1100,
+        image: `${IMG_BASE}/takchita-gold.png`,
+        price: 6500,
+    },
+    // === DJELLABA FEMME ===
     {
         uid: "TM-WOMEN-DJELLABA-001",
         title: "Djellaba Femme Élégante",
@@ -48,52 +98,19 @@ const PRODUCTS: ProductTemplate[] = [
         category: "Djellaba",
         gender: "Women",
         weight: 500,
-        image: "https://images.unsplash.com/photo-1590736969955-71cc94801759?w=800",
+        image: `${IMG_BASE}/djellaba_femme.png`,
         price: 1200,
     },
     {
-        uid: "TM-MEN-DJELLABA-001",
-        title: "Djellaba Homme Traditionnelle",
-        handle: "djellaba-homme-traditionnelle",
-        description: "Authentic handcrafted men's djellaba made from premium Moroccan wool blend fabric.",
-        category: "Djellaba",
-        gender: "Men",
-        weight: 600,
-        image: "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=800",
-        price: 950,
-    },
-    {
-        uid: "TM-MEN-BABOUCHE-001",
-        title: "Babouche Cuir Fès",
-        handle: "babouche-cuir-fes",
-        description: "Premium handmade leather slippers from Fez. Traditional yellow color with durable sole.",
-        category: "Babouche",
-        gender: "Men",
-        weight: 300,
-        image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=800",
-        price: 280,
-    },
-    {
-        uid: "TM-WOMEN-KAFTAN-002",
-        title: "Golden Bridal Takchita",
-        handle: "golden-bridal-takchita",
-        description: "Stunning two-piece Takchita for brides, featuring white silk base and sheer embroidered overlay.",
-        category: "Kaftan",
-        gender: "Women",
-        weight: 1200,
-        image: "https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=800",
-        price: 8500,
-    },
-    {
         uid: "TM-WOMEN-DJELLABA-002",
-        title: "Traditional Cream Djellaba",
-        handle: "traditional-cream-djellaba",
+        title: "Cream Winter Djellaba",
+        handle: "cream-winter-djellaba",
         description: "Classic cream-colored djellaba with delicate embroidery, perfect for everyday elegance.",
         category: "Djellaba",
         gender: "Women",
-        weight: 450,
-        image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800",
-        price: 850,
+        weight: 550,
+        image: `${IMG_BASE}/djellaba-cream.png`,
+        price: 950,
     },
     {
         uid: "TM-WOMEN-DJELLABA-003",
@@ -103,20 +120,22 @@ const PRODUCTS: ProductTemplate[] = [
         category: "Djellaba",
         gender: "Women",
         weight: 700,
-        image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800",
+        image: `${IMG_BASE}/djellaba-navy.png`,
         price: 1100,
     },
+    // === DJELLABA HOMME ===
     {
-        uid: "TM-WOMEN-KAFTAN-003",
-        title: "Burgundy Silk Kaftan",
-        handle: "burgundy-silk-kaftan",
-        description: "Luxurious burgundy silk kaftan with traditional Moroccan patterns and gold accents.",
-        category: "Kaftan",
-        gender: "Women",
+        uid: "TM-MEN-DJELLABA-001",
+        title: "Djellaba Homme Traditionnelle",
+        handle: "djellaba-homme-traditionnelle",
+        description: "Authentic handcrafted men's djellaba made from premium Moroccan wool blend fabric.",
+        category: "Djellaba",
+        gender: "Men",
         weight: 600,
-        image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800",
-        price: 3800,
+        image: `${IMG_BASE}/djellaba_homme.png`,
+        price: 950,
     },
+    // === JABADOR ===
     {
         uid: "TM-MEN-JABADOR-001",
         title: "Classic White Jabador",
@@ -125,19 +144,31 @@ const PRODUCTS: ProductTemplate[] = [
         category: "Jabador",
         gender: "Men",
         weight: 700,
-        image: "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=800",
+        image: `${IMG_BASE}/jabador_homme.png`,
         price: 750,
     },
     {
-        uid: "TM-WOMEN-KAFTAN-004",
-        title: "Emerald Velvet Kaftan",
-        handle: "emerald-velvet-kaftan",
-        description: "Stunning emerald green velvet kaftan with intricate gold embroidery.",
-        category: "Kaftan",
-        gender: "Women",
-        weight: 900,
-        image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800",
-        price: 4200,
+        uid: "TM-MEN-JABADOR-002",
+        title: "Premium White Jabador",
+        handle: "premium-white-jabador",
+        description: "Premium quality white jabador with elegant embroidery details, perfect for special occasions.",
+        category: "Jabador",
+        gender: "Men",
+        weight: 750,
+        image: `${IMG_BASE}/jabador-white.png`,
+        price: 850,
+    },
+    // === BABOUCHE ===
+    {
+        uid: "TM-MEN-BABOUCHE-001",
+        title: "Babouche Cuir Fès",
+        handle: "babouche-cuir-fes",
+        description: "Premium handmade leather slippers from Fez. Traditional yellow color with durable sole.",
+        category: "Babouche",
+        gender: "Men",
+        weight: 300,
+        image: `${IMG_BASE}/babouche_fes.png`,
+        price: 280,
     },
 ]
 
@@ -176,6 +207,32 @@ export default async function seedProducts({ container }: ExecArgs): Promise<voi
         logger.info(`[DELETED] ${existingProducts.length} products`)
     }
 
+    // Clean existing inventory items - bach ma ykunch conflict f SKUs
+    logger.info("Cleaning existing inventory items...")
+    const [existingInventory] = await inventoryService.listInventoryItems({}, { take: 10000 })
+    if (existingInventory.length) {
+        // First delete inventory levels
+        for (const item of existingInventory) {
+            try {
+                const [levels] = await inventoryService.listInventoryLevels({ inventory_item_id: item.id })
+                if (levels.length) {
+                    await inventoryService.deleteInventoryLevels(levels.map(l => l.id))
+                }
+            } catch (e) {
+                // Ignore - may not exist
+            }
+        }
+        // Then delete inventory items
+        for (const item of existingInventory) {
+            try {
+                await inventoryService.deleteInventoryItems([item.id])
+            } catch (e) {
+                // Ignore errors
+            }
+        }
+        logger.info(`[DELETED] ${existingInventory.length} inventory items`)
+    }
+
     const [existingCategories] = await productService.listAndCountProductCategories({}, { take: 10000 })
     if (existingCategories.length) {
         await productService.deleteProductCategories(existingCategories.map(c => c.id))
@@ -190,6 +247,10 @@ export default async function seedProducts({ container }: ExecArgs): Promise<voi
     logger.info(`[OK] Created ${categories.length} categories`)
 
     const getCategoryId = (name: string) => categories.find(c => c.name === name)?.id ?? categories[0].id
+
+    // Generate unique SKU suffix - bach ma ykunsh conflict
+    const skuSuffix = Date.now().toString(36).slice(-4).toUpperCase()
+    logger.info(`[OK] Using SKU suffix: ${skuSuffix}`)
 
     // Create products with UID in metadata
     logger.info("\nCreating products with UIDs...")
@@ -213,10 +274,10 @@ export default async function seedProducts({ container }: ExecArgs): Promise<voi
                     { title: "Size", values: ["S", "M", "L", "XL"] },
                 ],
                 variants: [
-                    { title: "S", sku: `${p.uid}-S`, options: { Size: "S" }, prices: [{ amount: p.price, currency_code: "mad" }] },
-                    { title: "M", sku: `${p.uid}-M`, options: { Size: "M" }, prices: [{ amount: p.price, currency_code: "mad" }] },
-                    { title: "L", sku: `${p.uid}-L`, options: { Size: "L" }, prices: [{ amount: p.price, currency_code: "mad" }] },
-                    { title: "XL", sku: `${p.uid}-XL`, options: { Size: "XL" }, prices: [{ amount: p.price, currency_code: "mad" }] },
+                    { title: "S", sku: `${p.uid}-S-${skuSuffix}`, manage_inventory: false, options: { Size: "S" }, prices: [{ amount: p.price, currency_code: "mad" }] },
+                    { title: "M", sku: `${p.uid}-M-${skuSuffix}`, manage_inventory: false, options: { Size: "M" }, prices: [{ amount: p.price, currency_code: "mad" }] },
+                    { title: "L", sku: `${p.uid}-L-${skuSuffix}`, manage_inventory: false, options: { Size: "L" }, prices: [{ amount: p.price, currency_code: "mad" }] },
+                    { title: "XL", sku: `${p.uid}-XL-${skuSuffix}`, manage_inventory: false, options: { Size: "XL" }, prices: [{ amount: p.price, currency_code: "mad" }] },
                 ],
                 sales_channels: [{ id: salesChannel.id }],
             })),

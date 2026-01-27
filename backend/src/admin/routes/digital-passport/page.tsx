@@ -1,7 +1,6 @@
 "use client"
 
 import { Container, Heading, Table, Text, Badge, Button, Input } from "@medusajs/ui"
-import { RouteConfig } from "@medusajs/admin-sdk"
 import { useEffect, useState, useMemo, type ChangeEvent, type MouseEvent } from "react"
 
 // Types dyal passports

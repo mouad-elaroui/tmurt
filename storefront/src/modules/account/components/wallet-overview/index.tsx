@@ -104,14 +104,19 @@ export function WalletPage() {
 
     const fetchWalletData = async () => {
         try {
-            const res = await fetch("/store/wallet", { credentials: "include" })
+            // Kan-jbdou l-wallet data mn l-API l-jdid
+            const res = await fetch("/store/wallet/me", { credentials: "include" })
             const data = await res.json()
             if (data.wallet) {
                 setWallet(data.wallet)
-                // Extract transactions from metadata if available
-                const meta = data.wallet.metadata as any
-                if (meta?.last_transaction) {
-                    setTransactions([meta.last_transaction])
+                // L-transactions katji direct mn l-API
+                if (data.transactions) {
+                    setTransactions(data.transactions.map((t: any) => ({
+                        type: t.type.toLowerCase(),
+                        amount: t.amount,
+                        timestamp: t.created_at,
+                        description: t.description,
+                    })))
                 }
             }
         } catch (e) {

@@ -19,7 +19,6 @@ module.exports = defineConfig({
       },
     }),
     http: {
-      port: Number(process.env.PORT) || 9000,
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
       authCors: process.env.AUTH_CORS!,
@@ -59,6 +58,9 @@ module.exports = defineConfig({
     },
     {
       resolve: "./src/modules/sizing",
+    },
+    {
+      resolve: "./src/modules/family-sync",
     },
   ]
 })

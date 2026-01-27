@@ -20,8 +20,8 @@ export async function POST(
 
     try {
         const passport = await digitalPassportService.createPassport(order_id, {
-            source: "demo_endpoint",
-            created_at: new Date().toISOString()
+            name: "Demo Product",
+            category: "demo"
         })
 
         res.json({

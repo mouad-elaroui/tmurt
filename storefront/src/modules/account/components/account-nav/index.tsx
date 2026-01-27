@@ -103,6 +103,20 @@ const AccountNav = ({
                   </LocalizedClientLink>
                 </li>
                 <li>
+                  <LocalizedClientLink
+                    href="/account/family"
+                    className="flex items-center justify-between py-4 border-b border-gray-200 px-8"
+                    data-testid="family-link"
+                  >
+                    <div className="flex items-center gap-x-2">
+                      {/* Family/Users icon */}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                      <span>Family Hub</span>
+                    </div>
+                    <ChevronDown className="transform -rotate-90" />
+                  </LocalizedClientLink>
+                </li>
+                <li>
                   <button
                     type="button"
                     className="flex items-center justify-between py-4 border-b border-gray-200 px-8 w-full"
@@ -173,6 +187,15 @@ const AccountNav = ({
                   Wallet
                 </AccountNavLink>
               </li>
+              <li>
+                <AccountNavLink
+                  href="/account/family"
+                  route={route!}
+                  data-testid="family-link"
+                >
+                  Family Hub
+                </AccountNavLink>
+              </li>
               <li className="text-grey-700">
                 <button
                   type="button"
@@ -186,7 +209,7 @@ const AccountNav = ({
           </div>
         </div>
       </div>
-    </div>
+    </div >
   )
 }
 
